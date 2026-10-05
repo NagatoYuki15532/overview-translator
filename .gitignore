@@ -41,3 +41,7 @@ appsettings*.json
 config-backup-*.xml
 .env
 .env.*
+
+# --- 本地构建/工具目录 ------------------------------------------------------
+.dotnet/
+Releases/
