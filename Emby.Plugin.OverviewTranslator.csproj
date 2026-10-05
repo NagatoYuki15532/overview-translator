@@ -30,10 +30,9 @@
     <Authors>OverviewTranslator contributors</Authors>
     <Description>Emby 单集简介翻译插件：可插拔翻译引擎（DeepSeek / OpenAI 兼容 / 免密钥后端），只改 Overview 字段。</Description>
 
-    <!-- TODO: 推送前把 YOUR_GITHUB_USER 换成真实账号（或改成你自己的仓库地址）。 -->
-    <RepositoryUrl>https://github.com/YOUR_GITHUB_USER/emby-overview-translator</RepositoryUrl>
+    <RepositoryUrl>https://github.com/NagatoYuki15532/emby-plugin-overview-translator</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/YOUR_GITHUB_USER/emby-overview-translator</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/NagatoYuki15532/emby-plugin-overview-translator</PackageProjectUrl>
     <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
   </PropertyGroup>
 
