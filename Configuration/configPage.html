@@ -1,0 +1,426 @@
+<!--
+    简介翻译（Overview Translator）设置页。
+
+    Emby 4.10 的插件页机制（已在本机 4.10.1.0 客户端代码上核实）：
+      * 本 HTML 由 GET /web/configurationpage?name=overviewtranslator 返回；
+      * 客户端把这段 HTML 直接插入 DOM，**内联 <script> 不会执行**；
+      * 真正跑逻辑的是 viewmanager.js 里的这段代码：读元素的 data-controller，
+        若以 "__plugin/" 开头则交给 PluginManager.getConfigurationResourceUrl(name)
+        再 require([url])，所以 data-controller 必须指向本插件注册的 JS 页
+        overviewtranslator.js，且那个文件必须是 AMD 模块。
+
+    因此：CSS 与结构内联在这里，JS 逻辑在 Web/overviewtranslator.js（同一次交付的两个文件）。
+    页面不引用任何外部 CDN、字体或图片，只用 Emby 自带的 CSS 变量与内联样式。
+-->
+<div class="view flex flex-direction-column"
+     data-bindheader="true"
+     data-controller="__plugin/overviewtranslator.js"
+     data-title="简介翻译"
+     id="overviewTranslatorConfigPage"
+     style="overflow-y:auto">
+
+    <style>
+        #overviewTranslatorConfigPage {
+            padding: 0 1em 2.5em;
+            color: inherit;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        #overviewTranslatorConfigPage h2 {
+            font-size: 1.15em;
+            font-weight: 600;
+            margin: 0 0 .5em;
+        }
+
+        #overviewTranslatorConfigPage .ot-section {
+            border: 1px solid rgba(128, 128, 128, .35);
+            border-radius: 6px;
+            margin: 0 0 16px;
+            padding: 12px 14px;
+        }
+
+        #overviewTranslatorConfigPage .ot-row {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        #overviewTranslatorConfigPage .ot-label {
+            flex: 0 0 230px;
+            font-weight: 500;
+            max-width: 230px;
+        }
+
+        #overviewTranslatorConfigPage .ot-control {
+            flex: 1 1 280px;
+            min-width: 220px;
+        }
+
+        #overviewTranslatorConfigPage input[type=text],
+        #overviewTranslatorConfigPage input[type=password],
+        #overviewTranslatorConfigPage input[type=number],
+        #overviewTranslatorConfigPage select,
+        #overviewTranslatorConfigPage textarea {
+            background: rgba(128, 128, 128, .12);
+            border: 1px solid rgba(128, 128, 128, .45);
+            border-radius: 4px;
+            box-sizing: border-box;
+            color: inherit;
+            font-family: inherit;
+            font-size: 1em;
+            padding: 7px 9px;
+            width: 100%;
+        }
+
+        #overviewTranslatorConfigPage textarea {
+            min-height: 4.5em;
+            resize: vertical;
+        }
+
+        #overviewTranslatorConfigPage .ot-help {
+            color: rgba(128, 128, 128, 1);
+            font-size: .85em;
+            margin: 2px 0 10px;
+        }
+
+        #overviewTranslatorConfigPage .ot-check-label {
+            align-items: center;
+            display: inline-flex;
+            gap: 8px;
+            margin-right: 16px;
+        }
+
+        #overviewTranslatorConfigPage .ot-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 4px 0 14px;
+        }
+
+        #overviewTranslatorConfigPage .ot-button {
+            background: rgba(128, 128, 128, .18);
+            border: 1px solid rgba(128, 128, 128, .5);
+            border-radius: 4px;
+            color: inherit;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1em;
+            padding: 8px 16px;
+        }
+
+        #overviewTranslatorConfigPage .ot-button:hover {
+            background: rgba(128, 128, 128, .3);
+        }
+
+        #overviewTranslatorConfigPage .ot-button[disabled] {
+            cursor: default;
+            opacity: .55;
+        }
+
+        #overviewTranslatorConfigPage .ot-button-primary {
+            background: #52b54b;
+            border-color: #52b54b;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        #overviewTranslatorConfigPage .ot-status {
+            border-left: 3px solid #52b54b;
+            padding: 8px 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        #overviewTranslatorConfigPage .ot-status-ok {
+            border-left-color: #52b54b;
+        }
+
+        #overviewTranslatorConfigPage .ot-status-error {
+            border-left-color: #d9534f;
+            color: #d9534f;
+        }
+
+        #overviewTranslatorConfigPage .ot-hidden {
+            display: none !important;
+        }
+
+        #overviewTranslatorConfigPage .ot-itemtypes {
+            display: flex;
+            flex-wrap: wrap;
+        }
+    </style>
+
+    <div class="ot-section">
+        <h2>基本设置</h2>
+
+        <div class="ot-row">
+            <label class="ot-check-label" for="otEnabled">
+                <input data-field="Enabled" id="otEnabled" type="checkbox"/>
+                <span>启用插件</span>
+            </label>
+            <label class="ot-check-label" for="otEnableWebButton">
+                <input data-field="EnableWebButton" id="otEnableWebButton" type="checkbox"/>
+                <span>允许在单集页面显示「翻译简介」按钮</span>
+            </label>
+        </div>
+        <div class="ot-help">
+            <strong>这个开关不控制插件注入</strong>——Emby 4.10 不会把插件脚本注入网页
+            （实测 <code>/web/index.html</code> 里没有任何插件脚本引用，连官方 Bangumi 插件也没有），
+            所以按钮只能由浏览器侧的用户脚本
+            （工作区里的 <code>tools/emby-overview-translator.user.js</code>）注入，该脚本会读这个开关。
+            不装用户脚本时，打开或关闭都没有任何可见区别。
+            按钮只会在<strong>单集</strong>页出现（插件只翻译单集简介）。默认关闭。
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">翻译引擎</span>
+            <span class="ot-control">
+                <select data-field="Backend" id="otBackend">
+                    <option value="">（读取中…）</option>
+                </select>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">源语言</span>
+            <span class="ot-control">
+                <input data-field="SourceLanguage" id="otSourceLanguage" placeholder="auto" type="text"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">目标语言</span>
+            <span class="ot-control">
+                <input data-field="TargetLanguage" id="otTargetLanguage" placeholder="zh-CN" type="text"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">自动翻译间隔（分钟）</span>
+            <span class="ot-control">
+                <input data-field="IntervalMinutes" id="otIntervalMinutes" min="0" step="1" type="number"/>
+            </span>
+        </div>
+        <div class="ot-help">0 表示不自动运行；只影响计划任务，不影响手动翻译。改动后需重启一次 Emby 才生效（触发器在启动时注册）。</div>
+
+        <div class="ot-row">
+            <label class="ot-check-label" for="otAutoTranslateOnNewItems">
+                <input data-field="AutoTranslateOnNewItems" id="otAutoTranslateOnNewItems" type="checkbox"/>
+                <span>新入库 / 元数据刷新时自动翻译</span>
+            </label>
+        </div>
+        <div class="ot-row">
+            <span class="ot-label">自动翻译延迟（秒）</span>
+            <span class="ot-control">
+                <input data-field="AutoTranslateDelaySeconds" id="otAutoTranslateDelaySeconds" min="5" max="86400" step="30" type="number"/>
+            </span>
+        </div>
+        <div class="ot-help">
+            勾选后，新剧集入库或元数据刷新完成时会自动翻译，无需手动操作。
+            延迟是必要的：Emby 的事件在元数据提供器写完简介<strong>之前</strong>就触发了；
+            而一次要访问 Bangumi/TMDB 的刷新可能拖很久，所以默认给足 <strong>300 秒（5 分钟）</strong>。
+            等久一点只是新集晚几分钟有中文，等太短则整个任务会翻到空内容。
+            最小 5 秒。已翻译过的条目会命中本地缓存，不会重复消耗额度。
+        </div>
+    </div>
+
+    <div class="ot-section ot-engine-group" data-backends="DeepSeek OpenAiCompatible">
+        <h2>大模型（LLM）设置</h2>
+
+        <div class="ot-row">
+            <span class="ot-label">接口地址 BaseUrl</span>
+            <span class="ot-control">
+                <input data-field="Llm.BaseUrl" id="otLlmBaseUrl" placeholder="https://api.deepseek.com/v1" type="text"/>
+            </span>
+        </div>
+        <div class="ot-help">填到 /v1 为止，不要带 /chat/completions。本地 Ollama 可填 http://127.0.0.1:11434/v1。</div>
+
+        <div class="ot-row">
+            <span class="ot-label">API Key</span>
+            <span class="ot-control">
+                <input autocomplete="new-password" data-field="Llm.ApiKey" id="otLlmApiKey" placeholder="留空表示保持已保存的密钥" type="password"/>
+            </span>
+        </div>
+        <div class="ot-row">
+            <label class="ot-check-label" for="otClearApiKey">
+                <input id="otClearApiKey" type="checkbox"/>
+                <span>清空已保存的 API Key</span>
+            </label>
+            <span class="ot-help" id="otApiKeyState">（密钥状态读取中…）</span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">模型名称</span>
+            <span class="ot-control">
+                <input data-field="Llm.Model" id="otLlmModel" placeholder="deepseek-chat" type="text"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">单次请求超时（秒）</span>
+            <span class="ot-control">
+                <input data-field="Llm.TimeoutSeconds" id="otLlmTimeout" min="5" step="1" type="number"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">每次请求条数上限</span>
+            <span class="ot-control">
+                <input data-field="Llm.BatchSize" id="otLlmBatchSize" min="1" step="1" type="number"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">温度 Temperature</span>
+            <span class="ot-control">
+                <input data-field="Llm.Temperature" id="otLlmTemperature" min="0" step="0.1" type="number"/>
+            </span>
+        </div>
+        <div class="ot-help">DeepSeek 官方翻译指南建议 1.3。</div>
+
+        <div class="ot-row">
+            <span class="ot-label">最大输出 Token</span>
+            <span class="ot-control">
+                <input data-field="Llm.MaxTokens" id="otLlmMaxTokens" min="64" step="1" type="number"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">附加提示词</span>
+            <span class="ot-control">
+                <textarea data-field="Llm.ExtraPrompt" id="otLlmExtraPrompt" placeholder="可选，例如：人名保持原文，不要添加解释"></textarea>
+            </span>
+        </div>
+    </div>
+
+    <div class="ot-section ot-engine-group" data-backends="LibreTranslate">
+        <h2>LibreTranslate 设置</h2>
+
+        <div class="ot-row">
+            <span class="ot-label">LibreTranslate 地址</span>
+            <span class="ot-control">
+                <input data-field="Free.LibreTranslateUrl" id="otLibreUrl" placeholder="http://127.0.0.1:5000" type="text"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">LibreTranslate API Key</span>
+            <span class="ot-control">
+                <input autocomplete="new-password" data-field="Free.LibreTranslateApiKey" id="otLibreKey" placeholder="留空表示保持已保存的密钥" type="password"/>
+            </span>
+        </div>
+        <div class="ot-row">
+            <label class="ot-check-label" for="otClearLibreKey">
+                <input id="otClearLibreKey" type="checkbox"/>
+                <span>清空已保存的 API Key</span>
+            </label>
+            <span class="ot-help" id="otLibreKeyState">（密钥状态读取中…）</span>
+        </div>
+    </div>
+
+    <div class="ot-section ot-engine-group" data-backends="GoogleFree BingFree MyMemoryFree LibreTranslate">
+        <h2>免密钥 / 自建引擎</h2>
+        <div class="ot-row">
+            <span class="ot-label">单次请求超时（秒）</span>
+            <span class="ot-control">
+                <input data-field="Free.TimeoutSeconds" id="otFreeTimeout" min="5" step="1" type="number"/>
+            </span>
+        </div>
+        <div class="ot-help">Google / Bing 的免密钥接口在部分网络环境需要走代理，请在下方配置。</div>
+    </div>
+
+    <div class="ot-section">
+        <h2>网络与代理</h2>
+
+        <div class="ot-row">
+            <label class="ot-check-label" for="otUseProxy">
+                <input data-field="Network.UseProxy" id="otUseProxy" type="checkbox"/>
+                <span>使用代理访问翻译接口</span>
+            </label>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">代理主机</span>
+            <span class="ot-control">
+                <input data-field="Network.ProxyHost" id="otProxyHost" placeholder="127.0.0.1" type="text"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">代理端口</span>
+            <span class="ot-control">
+                <input data-field="Network.ProxyPort" id="otProxyPort" min="1" max="65535" step="1" type="number"/>
+            </span>
+        </div>
+    </div>
+
+    <div class="ot-section">
+        <h2>批量与范围</h2>
+
+        <div class="ot-row">
+            <span class="ot-label">参与翻译的条目类型</span>
+            <span class="ot-control ot-itemtypes" id="otItemTypes"></span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">单次运行上限</span>
+            <span class="ot-control">
+                <input data-field="Scope.MaxItemsPerRun" id="otMaxItems" min="0" step="1" type="number"/>
+            </span>
+        </div>
+        <div class="ot-help">0 表示不限制。</div>
+
+        <div class="ot-row">
+            <span class="ot-label">条目间隔（毫秒）</span>
+            <span class="ot-control">
+                <input data-field="Scope.DelayBetweenItemsMs" id="otDelay" min="0" step="10" type="number"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">失败重试次数</span>
+            <span class="ot-control">
+                <input data-field="Scope.RetryCount" id="otRetry" min="0" step="1" type="number"/>
+            </span>
+        </div>
+
+        <div class="ot-row">
+            <label class="ot-check-label" for="otSkipTranslated">
+                <input data-field="Scope.SkipAlreadyTranslated" id="otSkipTranslated" type="checkbox"/>
+                <span>跳过已是目标语言的简介</span>
+            </label>
+        </div>
+
+        <div class="ot-row">
+            <span class="ot-label">只翻译这些媒体库</span>
+            <span class="ot-control">
+                <input data-field="Scope.IncludeLibraries" id="otIncludeLibraries" placeholder="留空表示全部，多个用英文逗号分隔" type="text"/>
+            </span>
+        </div>
+    </div>
+
+    <div class="ot-section">
+        <h2>操作</h2>
+        <div class="ot-buttons">
+            <button class="ot-button ot-button-primary" id="otSave" type="button">保存设置</button>
+            <button class="ot-button" id="otTest" type="button">测试后端</button>
+            <button class="ot-button" id="otBatch" type="button">立即批量翻译</button>
+            <button class="ot-button" id="otRefreshStatus" type="button">刷新状态</button>
+        </div>
+        <div class="ot-status" id="otMessage">就绪。</div>
+        <div class="ot-status" id="otStatus">状态读取中…</div>
+    </div>
+
+    <script>
+        // 说明：Emby 会把本片段插入 DOM（innerHTML），所以这段内联脚本正常情况下不会执行；
+        // 设置页逻辑在 data-controller 指向的 AMD 模块 Web/overviewtranslator.js 里。
+        // 保留这一小段只是为了在「内联脚本恰好会执行」的 Emby 版本上留下一个标记，
+        // 逻辑仍然只有一份，不会重复初始化。
+        (function () {
+            window.OverviewTranslatorConfigMarkupReady = true;
+        }());
+    </script>
+</div>

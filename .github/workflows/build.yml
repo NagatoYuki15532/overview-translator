@@ -1,0 +1,64 @@
+name: build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Emby 官方发布在 nuget.org 上的程序集包。CI 里没有安装 Emby，所以从这里取编译期引用。
+  # 注意：nuget.org 上并没有 4.10.1.0（4.10 之后只有 beta），因此 CI 只能拿到 4.9.1.90。
+  # 详见 README「CI」一节。
+  EMBY_NUGET_VERSION: '4.9.1.90'
+  EMBY_REFS_DIR: .emby-refs
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK（6.0.x + 8.0.x）
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+
+      - name: 下载 Emby 官方程序集（nuget.org）
+        run: |
+          set -euo pipefail
+          mkdir -p "$EMBY_REFS_DIR"
+          base="https://api.nuget.org/v3-flatcontainer"
+          curl -fsSL -o core.nupkg \
+            "$base/mediabrowser.server.core/$EMBY_NUGET_VERSION/mediabrowser.server.core.$EMBY_NUGET_VERSION.nupkg"
+          curl -fsSL -o common.nupkg \
+            "$base/mediabrowser.common/$EMBY_NUGET_VERSION/mediabrowser.common.$EMBY_NUGET_VERSION.nupkg"
+          unzip -j -o core.nupkg 'lib/netstandard2.0/*.dll' -d "$EMBY_REFS_DIR"
+          unzip -j -o common.nupkg 'lib/netstandard2.0/*.dll' -d "$EMBY_REFS_DIR"
+          echo "编译期引用的 Emby 程序集："
+          ls -l "$EMBY_REFS_DIR"
+
+      - name: 构建 net6.0 与 net8.0
+        run: |
+          dotnet build Emby.Plugin.OverviewTranslator.csproj \
+            -c Release \
+            -p:EmbySystemDir="$GITHUB_WORKSPACE/$EMBY_REFS_DIR" \
+            --nologo
+
+      - name: 上传 net8.0 产物（Emby 4.10+）
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emby.Plugin.OverviewTranslator-net8.0
+          path: artifacts/bin/Release/net8.0/Emby.Plugin.OverviewTranslator.dll
+          if-no-files-found: error
+
+      - name: 上传 net6.0 产物（Emby 4.9.x）
+        uses: actions/upload-artifact@v4
+        with:
+          name: Emby.Plugin.OverviewTranslator-net6.0
+          path: artifacts/bin/Release/net6.0/Emby.Plugin.OverviewTranslator.dll
+          if-no-files-found: error

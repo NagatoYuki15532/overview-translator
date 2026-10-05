@@ -1,0 +1,43 @@
+# --- 构建产物 ---------------------------------------------------------------
+bin/
+obj/
+artifacts/
+.emby-refs/
+
+# --- .NET / NuGet -----------------------------------------------------------
+*.user
+*.suo
+*.userprefs
+.vs/
+.vscode/
+.idea/
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+
+# 不提交任何二进制：本仓库只发布源码，DLL 由使用者自行编译，
+# 也避免误把 Emby 服务端程序集（版权归 Emby 团队）提交进来。
+*.dll
+*.pdb
+*.exe
+*.so
+*.dylib
+
+# --- 本地/临时 --------------------------------------------------------------
+.tmp/
+.temp/
+*.log
+*.bak
+*.bak-*
+*.orig
+*.rej
+
+# --- 密钥与本地配置（务必不要提交）-----------------------------------------
+# 插件的真实配置里有 API Key，只存在于 Emby 的 programdata 里，不应进入仓库。
+*.key
+secrets.json
+appsettings*.json
+config-backup-*.xml
+.env
+.env.*

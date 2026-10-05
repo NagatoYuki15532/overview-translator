@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!--
+      多目标：
+        net6.0 —— Emby Server 4.9.x 及更早（宿主运行时是 .NET 6）
+        net8.0 —— Emby Server 4.10+（宿主运行时是 .NET 8）
+      插件代码本身不依赖任何 TFM 专属 API，因此两个目标用的是同一份源码，
+      没有 #if，也不需要条件编译。
+    -->
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <AssemblyName>Emby.Plugin.OverviewTranslator</AssemblyName>
+    <RootNamespace>Emby.Plugin.OverviewTranslator</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;NU1701;CS0618</NoWarn>
+
+    <!-- 不要把 Emby 服务端程序集复制进插件产物：Emby 自己已经加载了它们。 -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+
+    <Version>1.0.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Product>Overview Translator for Emby</Product>
+    <Company>OverviewTranslator contributors</Company>
+    <Authors>OverviewTranslator contributors</Authors>
+    <Description>Emby 单集简介翻译插件：可插拔翻译引擎（DeepSeek / OpenAI 兼容 / 免密钥后端），只改 Overview 字段。</Description>
+
+    <!-- TODO: 推送前把 YOUR_GITHUB_USER 换成真实账号（或改成你自己的仓库地址）。 -->
+    <RepositoryUrl>https://github.com/YOUR_GITHUB_USER/emby-overview-translator</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/YOUR_GITHUB_USER/emby-overview-translator</PackageProjectUrl>
+    <PackageLicenseExpression>GPL-2.0-only</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <!--
+    Emby 是「部署好的应用」，不是 NuGet 包，所以直接引用安装目录里随服务端发布的程序集
+    （目录由 Directory.Build.props 里的 EmbySystemDir 决定）。
+    这些引用全部是编译期引用（Private=false）：运行时不复制、不打包，由 Emby 宿主提供。
+  -->
+  <ItemGroup>
+    <Reference Include="MediaBrowser.Common">
+      <HintPath>$(EmbySystemDir)/MediaBrowser.Common.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="MediaBrowser.Controller">
+      <HintPath>$(EmbySystemDir)/MediaBrowser.Controller.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="MediaBrowser.Model">
+      <HintPath>$(EmbySystemDir)/MediaBrowser.Model.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <!--
+      Emby 4.10 安装目录里还有 Emby.Web.GenericEdit.dll / Emby.Web.GenericUI.dll。
+      本插件的设置页是自带的嵌入式 HTML（Configuration/configPage.html），没有用到这两个程序集里的
+      类型，因此不引用它们——这样 4.9 与 4.10 的官方程序集集合都能编译本插件。
+      如果将来要用 GenericEdit 的类型，在这里加回 GenericEdit 的 Reference 即可
+      （注意官方 NUGet 包 MediaBrowser.Server.Core / MediaBrowser.Common 里只有 GenericEdit，
+        没有 GenericUI）。
+    -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration/configPage.html" />
+    <EmbeddedResource Include="Web/overviewtranslator.js" />
+  </ItemGroup>
+
+</Project>

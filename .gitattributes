@@ -1,0 +1,18 @@
+# 关闭行尾自动转换。
+#
+# 本仓库的源码是从已经过验证的版本逐字节复制的，保持原始字节最安全：
+# 无论使用者在什么平台上克隆（Windows 上 core.autocrlf 常见为 true），
+# 检出的文件都和验证过的版本完全一致，不会因为 CRLF/LF 转换产生"看不见的改动"。
+* -text
+
+# Git 与 GitHub 仍然按文本处理这些文件（diff、语言统计都正常）。
+*.cs   diff
+*.html diff
+*.js   diff
+*.ps1  diff
+*.md   diff
+*.yml  diff
+*.xml  diff
+*.props diff
+*.csproj diff
+*.gitignore diff
